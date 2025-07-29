@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "live": "rm -rf .next && next build && next start"
   },
   "dependencies": {
     "next": "15.4.4",
