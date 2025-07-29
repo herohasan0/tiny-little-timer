@@ -181,14 +181,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Click Area */}
-      {/* <button
-        onClick={handleClick}
-        className="absolute inset-0 w-full h-full bg-transparent focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-200 active:bg-opacity-10 touch-manipulation z-10"
-        style={{ touchAction: "manipulation" }}
-        aria-label="Timer control"
-      /> */}
-
       {/* Stats Modal */}
       {showStatsModal && (
         <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4">
