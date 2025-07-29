@@ -1,103 +1,156 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import Confetti from 'react-confetti';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [timeLeft, setTimeLeft] = useState(45 * 60); // 45 minutes in seconds
+  const [isRunning, setIsRunning] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const intervalRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return { mins: mins.toString().padStart(2, '0'), secs: secs.toString().padStart(2, '0') };
+  };
+
+  const handleClick = () => {
+    if (clickTimeoutRef.current) {
+      // Double click detected - reset
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      resetTimer();
+    } else {
+      // Single click - toggle timer
+      clickTimeoutRef.current = setTimeout(() => {
+        if (isComplete) {
+          resetTimer();
+        } else {
+          // Start immediately if not running
+          if (!isRunning) {
+            setIsRunning(true);
+            setTimeLeft(prev => prev - 1); // Start immediately at 44:59
+          } else {
+            setIsRunning(false);
+          }
+        }
+        clickTimeoutRef.current = null;
+      }, 300);
+    }
+  };
+
+  const resetTimer = () => {
+    setTimeLeft(45 * 60);
+    setIsRunning(false);
+    setIsComplete(false);
+    setShowConfetti(false);
+  };
+
+  // Temporary function to test confetti
+  const testConfetti = () => {
+    setTimeLeft(2); // Set to 2 seconds
+    setIsRunning(true);
+    setIsComplete(false);
+    setShowConfetti(false);
+  };
+
+  useEffect(() => {
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false);
+            setIsComplete(true);
+            setShowConfetti(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+
+    return () => clearInterval(intervalRef.current);
+  }, [isRunning, timeLeft]);
+
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
+
+  // Register service worker for PWA
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  }, []);
+
+  const progress = ((45 * 60 - timeLeft) / (45 * 60)) * 100;
+
+  return (
+    <div className="h-screen w-screen bg-black flex items-center justify-center overflow-hidden relative">
+      {/* React Confetti */}
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          numberOfPieces={300}
+          gravity={0.3}
+          wind={0.05}
+          // colors={['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']}
+        />
+      )}
+
+      {/* Loading Bar Background */}
+      <div 
+        className="absolute inset-0 transition-all duration-1000 ease-out"
+        style={{
+          background: `linear-gradient(90deg, 
+            rgba(245, 158, 11, 0.9) 0%, 
+            rgba(251, 146, 60, 0.9) 50%, 
+            rgba(249, 115, 22, 0.9) 100%)`,
+          clipPath: `inset(0 ${100 - progress}% 0 0)`,
+        }}
+      />
+
+      {/* Timer Display */}
+      <div className="relative z-10 text-center">
+        <div className="text-8xl font-bold text-white drop-shadow-lg tracking-wider" style={{ fontFamily: 'var(--font-noto-serif-jp), serif' }}>
+          <span>{formatTime(timeLeft).mins}</span>
+          <span className="text-4xl mx-2">:</span>
+          <span className="text-4xl">{formatTime(timeLeft).secs}</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Temporary Test Button */}
+      <button
+        onClick={testConfetti}
+        className="absolute top-4 right-4 bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 z-30"
+      >
+        Test Confetti (00:02)
+      </button>
+
+      {/* Click Area */}
+      <button
+        onClick={handleClick}
+        className="absolute inset-0 w-full h-full bg-transparent focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-200 active:bg-opacity-10 touch-manipulation z-20"
+        // style={{ touchAction: 'manipulation' }}
+        aria-label="Timer control"
+      />
     </div>
   );
 }
