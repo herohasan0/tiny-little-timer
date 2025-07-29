@@ -49,14 +49,6 @@ export default function Home() {
     setShowConfetti(false);
   };
 
-  // Temporary function to test confetti
-  const testConfetti = () => {
-    setTimeLeft(2); // Set to 2 seconds
-    setIsRunning(true);
-    setIsComplete(false);
-    setShowConfetti(false);
-  };
-
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -135,14 +127,6 @@ export default function Home() {
           <span className="text-4xl">{formatTime(timeLeft).secs}</span>
         </div>
       </div>
-
-      {/* Temporary Test Button */}
-      <button
-        onClick={testConfetti}
-        className="absolute top-4 right-4 bg-red-500 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 z-30"
-      >
-        Test Confetti (00:02)
-      </button>
 
       {/* Click Area */}
       <button
